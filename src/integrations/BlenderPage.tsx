@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 
 const C = {
@@ -20,9 +21,9 @@ function hoverPrimary(el: HTMLElement, on: boolean) {
 }
 
 function hoverOutline(el: HTMLElement, on: boolean) {
-  el.style.borderColor = on ? C.cyan               : 'rgba(0,0,0,0.14)';
-  el.style.color       = on ? C.cyan               : C.navy;
-  el.style.boxShadow   = on ? FOCUS_RING           : 'none';
+  el.style.borderColor = on ? C.cyan             : 'rgba(0,0,0,0.14)';
+  el.style.color       = on ? C.cyan             : C.navy;
+  el.style.boxShadow   = on ? FOCUS_RING         : 'none';
 }
 
 const btnBase: React.CSSProperties = {
@@ -40,6 +41,203 @@ const btnBase: React.CSSProperties = {
   transition: 'background 0.15s, box-shadow 0.2s, transform 0.15s, border-color 0.15s, color 0.15s',
   whiteSpace: 'nowrap' as const,
 };
+
+// ── Blender Q&A pairs ────────────────────────────────────────────────────────
+const BLENDER_QA = [
+  {
+    q: 'Where is the modifier panel?',
+    a: 'Click here and open the modifier tab, then select the modifier so you can keep editing the object the way you intended.',
+  },
+  {
+    q: 'Why does my render look different?',
+    a: 'Click here and open render settings, then compare the active camera and viewport settings so the final image matches what you expect.',
+  },
+  {
+    q: 'Why are my materials not showing?',
+    a: 'Click here and open the material properties, then assign or check the material so the object displays the surface correctly.',
+  },
+  {
+    q: 'Why did my textures disappear?',
+    a: 'Click here and open your export settings, then check texture export options so the assets travel with the file.',
+  },
+  {
+    q: 'Why is the camera rendering something else?',
+    a: 'Click here and open the camera view settings, then align the active render camera to the shot you actually want.',
+  },
+] as const;
+
+// ── Typewriter hook (mirrors App.tsx useTypewriter) ──────────────────────────
+function useTypewriter(items: readonly string[]) {
+  const prefersReduced = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    []
+  );
+
+  const [displayed, setDisplayed] = useState('');
+  const [index, setIndex]         = useState(0);
+  const [phase, setPhase]         = useState<'typing' | 'pausing' | 'erasing'>('typing');
+
+  useEffect(() => {
+    if (prefersReduced) {
+      const id = setInterval(() => setIndex((i) => (i + 1) % items.length), 3200);
+      setDisplayed(items[0]);
+      return () => clearInterval(id);
+    }
+
+    const target = items[index];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (phase === 'typing') {
+      if (displayed.length < target.length) {
+        const delay = 28 + Math.random() * 36;
+        timeout = setTimeout(() => setDisplayed(target.slice(0, displayed.length + 1)), delay);
+      } else {
+        timeout = setTimeout(() => setPhase('pausing'), 1800);
+      }
+    } else if (phase === 'pausing') {
+      timeout = setTimeout(() => setPhase('erasing'), 400);
+    } else {
+      if (displayed.length > 0) {
+        const delay = 12 + Math.random() * 14;
+        timeout = setTimeout(() => setDisplayed((d) => d.slice(0, -1)), delay);
+      } else {
+        setIndex((i) => (i + 1) % items.length);
+        setPhase('typing');
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayed, index, phase, items, prefersReduced]);
+
+  useEffect(() => {
+    if (prefersReduced) setDisplayed(items[index]);
+  }, [index, items, prefersReduced]);
+
+  return { displayed, isTyping: phase !== 'pausing', prefersReduced };
+}
+
+// ── Blender typewriter demo ──────────────────────────────────────────────────
+function BlenderTypewriterDemo() {
+  const questions = useMemo(() => BLENDER_QA.map((p) => p.q), []);
+  const answers   = useMemo(() => BLENDER_QA.map((p) => p.a), []);
+
+  const q = useTypewriter(questions);
+  const a = useTypewriter(answers);
+
+  const cursor = (active: boolean, color: string) => (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-block',
+        width: 1.5,
+        height: '0.85em',
+        background: color,
+        marginLeft: 2,
+        verticalAlign: 'text-bottom',
+        animation: active ? 'none' : 'nxBlink 1s step-end infinite',
+        opacity: active ? 1 : undefined,
+      }}
+    />
+  );
+
+  return (
+    <div style={{
+      borderRadius: 16,
+      border: `1px solid ${C.border}`,
+      background: C.bg,
+      overflow: 'hidden',
+    }}>
+      {/* Question row */}
+      <div style={{
+        padding: '18px 20px',
+        borderBottom: `1px solid ${C.border}`,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'flex-start',
+      }}>
+        <span style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.09em',
+          textTransform: 'uppercase' as const,
+          color: C.muted,
+          flexShrink: 0,
+          paddingTop: 2,
+          userSelect: 'none' as const,
+          minWidth: 20,
+        }}>
+          Q
+        </span>
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            margin: 0,
+            fontSize: 14,
+            fontWeight: 500,
+            color: C.navy,
+            lineHeight: 1.55,
+            letterSpacing: '-0.01em',
+            minHeight: '1.55em',
+          }}
+        >
+          {q.prefersReduced ? q.displayed : (
+            <>
+              {q.displayed}
+              {cursor(q.isTyping, C.navy)}
+            </>
+          )}
+        </p>
+      </div>
+
+      {/* Answer row */}
+      <div style={{
+        padding: '18px 20px',
+        display: 'flex',
+        gap: 12,
+        alignItems: 'flex-start',
+        background: 'white',
+      }}>
+        {/* Nexpot dot */}
+        <span style={{
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          background: C.cyan,
+          flexShrink: 0,
+          marginTop: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ width: 11, height: 11 }}>
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <p
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            margin: 0,
+            fontSize: 13,
+            fontWeight: 400,
+            color: C.slate,
+            lineHeight: 1.6,
+            letterSpacing: '-0.01em',
+            minHeight: '1.6em',
+          }}
+        >
+          {a.prefersReduced ? a.displayed : (
+            <>
+              {a.displayed}
+              {cursor(a.isTyping, C.cyan)}
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const STUCK_MOMENTS = [
   'Where is the modifier panel?',
@@ -164,7 +362,6 @@ export default function BlenderPage() {
           position: 'relative',
           overflow: 'hidden',
         }}>
-          {/* ambient glow */}
           <div aria-hidden="true" style={{
             position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
             width: 800, height: 560, borderRadius: '50%',
@@ -257,7 +454,6 @@ export default function BlenderPage() {
         <Section bg={C.bg}>
           <SectionHeading>Built for real Blender friction.</SectionHeading>
 
-          {/* Pill tags */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
             {BLENDER_AREAS.map((area) => (
               <span key={area} style={{
@@ -293,8 +489,8 @@ export default function BlenderPage() {
 
           <ol role="list" style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column' }}>
             {[
-              { n: '01', text: 'Press the shortcut.', strong: false },
-              { n: '02', text: 'Ask your question.', strong: false },
+              { n: '01', text: 'Press the shortcut.',      strong: false },
+              { n: '02', text: 'Ask your question.',        strong: false },
               { n: '03', text: 'Nexpot looks at your Blender screen and shows you what to do next.', strong: true },
             ].map(({ n, text, strong }, i) => (
               <li key={n} style={{
@@ -333,8 +529,13 @@ export default function BlenderPage() {
             ))}
           </ol>
 
+          {/* Blender-specific rotating Q&A demo */}
+          <div style={{ marginTop: 28 }}>
+            <BlenderTypewriterDemo />
+          </div>
+
           <p style={{
-            margin: '24px 0 0',
+            margin: '20px 0 0',
             fontSize: 13,
             fontWeight: 500,
             color: C.muted,
@@ -372,17 +573,17 @@ export default function BlenderPage() {
         <Section>
           <SectionHeading style={{ margin: '0 0 24px' }}>Stay in the flow.</SectionHeading>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {[
-              { text: 'That is the product.',      weight: 400, color: C.muted  },
-              { text: 'You do not leave Blender.', weight: 400, color: C.slate  },
-              { text: 'You do not stop to search.',weight: 400, color: C.slate  },
-              { text: 'You keep working.',          weight: 600, color: C.navy   },
-            ].map(({ text, weight, color }, i) => (
+              { text: 'That is the product.',       weight: 400, color: C.muted, size: 15 },
+              { text: 'You do not leave Blender.',  weight: 400, color: C.slate, size: 15 },
+              { text: 'You do not stop to search.', weight: 400, color: C.slate, size: 15 },
+              { text: 'You keep working.',           weight: 600, color: C.navy,  size: 17 },
+            ].map(({ text, weight, color, size }, i) => (
               <p key={text} style={{
                 margin: 0,
                 paddingTop: i === 0 ? 0 : 8,
-                fontSize: i === 3 ? 17 : 15,
+                fontSize: size,
                 fontWeight: weight,
                 color,
                 lineHeight: 1.6,
