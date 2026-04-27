@@ -1180,27 +1180,6 @@ export default function App() {
             <p style={{ margin: 0, fontSize: 12, color: C.faint }}>© 2026 Nexpot. All rights reserved.</p>
           </div>
 
-          {/* Supported apps */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.faint }}>Supported apps</span>
-            {[
-              { label: 'Blender',         href: '/integrations/blender' },
-              { label: 'DaVinci Resolve', href: '/integrations/davinci-resolve' },
-            ].map(({ label, href }) => (
-              <a
-                key={href}
-                href={href}
-                style={{ fontSize: 12, color: C.muted, textDecoration: 'none', letterSpacing: '-0.01em', transition: 'color 0.15s' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = C.navy)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = C.muted)}
-                onFocus={(e)  => { e.currentTarget.style.color = C.navy; e.currentTarget.style.outline = `2px solid ${C.cyan}`; e.currentTarget.style.outlineOffset = '3px'; }}
-                onBlur={(e)   => { e.currentTarget.style.color = C.muted; e.currentTarget.style.outline = 'none'; }}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-
           {/* Right: legal links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
             <a
