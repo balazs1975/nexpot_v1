@@ -373,7 +373,7 @@ function MainView() {
           margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.36)',
           lineHeight: 1.55, letterSpacing: '-0.01em', fontWeight: 400,
         }}>
-          Talk, type, or open the panel. Nexpot guides the next step.
+          Voice, type, or shortcut. Nexpot handles the rest.
         </p>
       </div>
 
@@ -384,8 +384,8 @@ function MainView() {
         <SectionLabel>Shortcuts</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 1 }}>
           {[
-            { label: 'Talk',       keys: ['ctrl', 'option'] },
-            { label: 'Open panel', keys: ['ctrl', 'shift', 'option'] },
+            { label: 'Voice', keys: ['ctrl', 'option'] },
+            { label: 'Panel', keys: ['ctrl', 'shift', 'option'] },
           ].map(({ label, keys }) => (
             <div key={label} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
@@ -412,12 +412,12 @@ function MainView() {
       <div style={{ padding: '12px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <SectionLabel>Response mode</SectionLabel>
+            <SectionLabel>Mode</SectionLabel>
             <p style={{
               margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.26)',
               letterSpacing: '-0.01em', lineHeight: 1.4,
             }}>
-              Fast is quicker. Pro is more thoughtful.
+              Fast replies quickly. Pro thinks it through.
             </p>
           </div>
           <Segmented value={mode} onChange={setMode} />
@@ -428,7 +428,7 @@ function MainView() {
 
       {/* Ask */}
       <div style={{ padding: '12px 16px 14px', display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <SectionLabel>Type a question</SectionLabel>
+        <SectionLabel>Ask</SectionLabel>
         <div
           style={{
             background: 'rgba(0,0,0,0.22)',
@@ -442,7 +442,7 @@ function MainView() {
           <AutoTextarea
             value={question}
             onChange={setQuestion}
-            placeholder="Type your question…"
+            placeholder="What do you need?"
             onSubmit={() => { /* send */ setQuestion(''); }}
           />
           <div
@@ -451,7 +451,7 @@ function MainView() {
             onBlurCapture={() => setBoxFocused(false)}
           >
             <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.16)', letterSpacing: '-0.01em' }}>
-              {canAsk ? 'Enter to ask · Shift+Enter for newline' : ''}
+              {canAsk ? 'Return to send · Shift+Return for new line' : ''}
             </span>
             <AskButton active={canAsk} onClick={() => setQuestion('')} />
           </div>
@@ -473,13 +473,13 @@ function MainView() {
             7,105
           </p>
           <p style={{ margin: 0, fontSize: 11, color: 'rgba(255,255,255,0.28)', letterSpacing: '-0.01em' }}>
-            credits available
+            credits remaining
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           <BuyButton />
           <p style={{ margin: 0, fontSize: 10, color: 'rgba(255,255,255,0.18)', letterSpacing: '-0.01em' }}>
-            Add more anytime
+            Top up anytime
           </p>
         </div>
       </div>
@@ -619,19 +619,19 @@ function SettingsView({ onBack }: { onBack: () => void }) {
           <Div indent />
           <SettingsRow
             title="Default mode"
-            description="Choose how Nexpot replies by default."
+            description="How Nexpot responds by default."
             right={<Segmented value={defaultMode} onChange={setDefaultMode} size="sm" />}
           />
           <Div indent />
           <SettingsRow
             title="Economy voice"
-            description="Lower voice cost. Slightly less precise transcription."
+            description="Reduces voice cost. Slightly less accurate."
             right={<Toggle checked={economyVoice} onChange={setEconomyVoice} />}
           />
           <Div indent />
           <SettingsRow
-            title="Text-only replies"
-            description="Show the text bubble without reading replies aloud."
+            title="Text only"
+            description="Skip reading replies aloud."
             right={<Toggle checked={textOnly} onChange={setTextOnly} />}
           />
         </SettingsGroup>
@@ -646,7 +646,7 @@ function SettingsView({ onBack }: { onBack: () => void }) {
           <Div indent />
           <SettingsRow
             title="Buy credits"
-            description="7,105 credits available"
+            description="7,105 credits remaining"
             right={<ChevronRight size={13} strokeWidth={2} color="rgba(255,255,255,0.22)" />}
             onClick={() => {}}
           />
