@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Settings, X, ArrowLeft, Zap, Plus } from 'lucide-react';
+import { Settings, X, ArrowLeft, Zap, Plus, ChevronRight } from 'lucide-react';
 
 type View = 'main' | 'settings';
 type Mode = 'fast' | 'pro';
@@ -385,49 +385,317 @@ function MainView() {
   );
 }
 
-// ── Settings view placeholder ─────────────────────────────────────────────────
-function SettingsView({ onBack }: { onBack: () => void }) {
-  const [hov, setHov] = useState(false);
+// ── Toggle switch ─────────────────────────────────────────────────────────────
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 14px', borderBottom: `1px solid ${C.border}`,
-      }}>
-        <button
-          onClick={onBack}
-          onMouseEnter={() => setHov(true)}
-          onMouseLeave={() => setHov(false)}
-          aria-label="Back to main view"
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '3px 0', color: hov ? C.faint : C.muted,
-            fontSize: 12, fontWeight: 500, letterSpacing: '-0.01em',
-            fontFamily: 'inherit', transition: 'color 0.12s', outline: 'none',
-          }}
-        >
-          <ArrowLeft size={13} strokeWidth={2.5} />
-          Back
-        </button>
-        <span style={{ fontSize: 12, fontWeight: 600, color: C.faint, letterSpacing: '-0.01em', marginLeft: 4 }}>
-          Settings
-        </span>
-      </div>
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        gap: 8, padding: '32px 20px',
-      }}>
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        width: 32,
+        height: 18,
+        borderRadius: 100,
+        border: 'none',
+        background: checked ? C.cyan : 'rgba(255,255,255,0.12)',
+        cursor: 'pointer',
+        padding: 0,
+        position: 'relative' as const,
+        flexShrink: 0,
+        transition: 'background 0.18s',
+        outline: 'none',
+        boxShadow: checked ? `0 0 0 1px ${C.cyanGlow}` : 'none',
+      }}
+    >
+      <span style={{
+        position: 'absolute' as const,
+        top: 2,
+        left: checked ? 16 : 2,
+        width: 14,
+        height: 14,
+        borderRadius: '50%',
+        background: 'white',
+        transition: 'left 0.18s',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+      }} />
+    </button>
+  );
+}
+
+// ── Settings row variants ─────────────────────────────────────────────────────
+function SettingsRow({
+  title,
+  description,
+  right,
+  destructive = false,
+  onClick,
+  disabled = false,
+}: {
+  title: string;
+  description?: string;
+  right?: React.ReactNode;
+  destructive?: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  const [hov, setHov] = useState(false);
+  const isClickable = !!onClick;
+
+  return (
+    <div
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => isClickable && !disabled && setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      onKeyDown={(e) => { if (isClickable && !disabled && (e.key === 'Enter' || e.key === ' ')) onClick?.(); }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        padding: '10px 16px',
+        cursor: isClickable && !disabled ? 'pointer' : 'default',
+        background: hov ? 'rgba(255,255,255,0.04)' : 'transparent',
+        transition: 'background 0.1s',
+        outline: 'none',
+        opacity: disabled ? 0.45 : 1,
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
         <span style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: '0.09em',
-          textTransform: 'uppercase' as const, color: C.slate, userSelect: 'none' as const,
+          fontSize: 12,
+          fontWeight: 500,
+          color: destructive ? '#f87171' : C.faint,
+          letterSpacing: '-0.01em',
+          lineHeight: 1.4,
+          whiteSpace: 'nowrap' as const,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}>
-          Settings view
+          {title}
         </span>
-        <span style={{ fontSize: 12, color: C.navyBorder, letterSpacing: '-0.01em' }}>
-          Content goes here
-        </span>
+        {description && (
+          <span style={{
+            fontSize: 11,
+            color: destructive ? 'rgba(248,113,113,0.55)' : 'rgba(255,255,255,0.28)',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.4,
+          }}>
+            {description}
+          </span>
+        )}
+      </div>
+
+      {right && (
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          {right}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SoonBadge() {
+  return (
+    <span style={{
+      fontSize: 9,
+      fontWeight: 700,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase' as const,
+      color: 'rgba(255,255,255,0.35)',
+      background: 'rgba(255,255,255,0.07)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      borderRadius: 100,
+      padding: '2px 7px',
+      userSelect: 'none' as const,
+    }}>
+      Soon
+    </span>
+  );
+}
+
+function RowDivider() {
+  return <div style={{ height: 1, background: C.border, margin: '0 16px' }} />;
+}
+
+function SettingsGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      background: C.surface,
+      borderRadius: 10,
+      border: `1px solid ${C.border}`,
+      overflow: 'hidden',
+      margin: '0 12px',
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// ── Settings view ─────────────────────────────────────────────────────────────
+function SettingsView({ onBack }: { onBack: () => void }) {
+  const [backHov, setBackHov] = useState(false);
+  const [defaultMode, setDefaultMode] = useState<Mode>('fast');
+  const [economyVoice, setEconomyVoice] = useState(false);
+  const [textOnly, setTextOnly] = useState(false);
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+
+      {/* Sub-header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 12px 10px 14px',
+        borderBottom: `1px solid ${C.border}`,
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={onBack}
+            onMouseEnter={() => setBackHov(true)}
+            onMouseLeave={() => setBackHov(false)}
+            aria-label="Back to main view"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '3px 0', color: backHov ? C.faint : C.muted,
+              fontSize: 12, fontWeight: 500, letterSpacing: '-0.01em',
+              fontFamily: 'inherit', transition: 'color 0.12s', outline: 'none',
+            }}
+          >
+            <ArrowLeft size={12} strokeWidth={2.5} />
+            Back
+          </button>
+
+          <span style={{ width: 1, height: 10, background: C.border, display: 'inline-block' }} />
+
+          <span style={{ fontSize: 12, fontWeight: 600, color: C.faint, letterSpacing: '-0.01em' }}>
+            Settings
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <StatusDot />
+          <IconBtn label="Close panel">
+            <X size={14} strokeWidth={2.2} />
+          </IconBtn>
+        </div>
+      </div>
+
+      {/* Scrollable body */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto' as const,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        padding: '10px 0 14px',
+      }}>
+
+        {/* Group 1: Autopilot + Default mode + toggles */}
+        <SettingsGroup>
+          <SettingsRow
+            title="Autopilot"
+            description="Coming soon"
+            right={<SoonBadge />}
+            disabled
+          />
+          <RowDivider />
+          <SettingsRow
+            title="Default mode"
+            description="Choose how Nexpot replies by default."
+            right={
+              <div style={{
+                display: 'flex',
+                background: 'rgba(0,0,0,0.30)',
+                borderRadius: 7,
+                padding: 3,
+                gap: 2,
+                border: `1px solid ${C.borderSub}`,
+              }}>
+                {(['fast', 'pro'] as Mode[]).map((m) => {
+                  const active = defaultMode === m;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => setDefaultMode(m)}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        fontFamily: 'inherit',
+                        letterSpacing: '0.01em',
+                        textTransform: 'capitalize' as const,
+                        padding: '3px 9px',
+                        borderRadius: 4,
+                        border: 'none',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        transition: 'background 0.12s, color 0.12s',
+                        background: active ? C.cyan : 'transparent',
+                        color: active ? 'white' : C.muted,
+                        boxShadow: active ? '0 1px 4px rgba(6,182,212,0.35)' : 'none',
+                      }}
+                    >
+                      {m === 'fast' ? 'Fast' : 'Pro'}
+                    </button>
+                  );
+                })}
+              </div>
+            }
+          />
+          <RowDivider />
+          <SettingsRow
+            title="Economy voice"
+            description="Lower voice cost. Slightly less precise transcription."
+            right={<Toggle checked={economyVoice} onChange={setEconomyVoice} />}
+          />
+          <RowDivider />
+          <SettingsRow
+            title="Text-only replies"
+            description="Show the text bubble without reading replies aloud."
+            right={<Toggle checked={textOnly} onChange={setTextOnly} />}
+          />
+        </SettingsGroup>
+
+        {/* Group 2: Updates + credits */}
+        <SettingsGroup>
+          <SettingsRow
+            title="Check for updates"
+            right={<ChevronRight size={13} strokeWidth={2} color="rgba(255,255,255,0.25)" />}
+            onClick={() => {}}
+          />
+          <RowDivider />
+          <SettingsRow
+            title="Buy credits"
+            description="7,105 credits available"
+            right={<ChevronRight size={13} strokeWidth={2} color="rgba(255,255,255,0.25)" />}
+            onClick={() => {}}
+          />
+        </SettingsGroup>
+
+        {/* Group 3: Account */}
+        <SettingsGroup>
+          <SettingsRow
+            title="Sign out"
+            description="balazs@walterscube.com"
+            right={<ChevronRight size={13} strokeWidth={2} color="rgba(255,255,255,0.25)" />}
+            onClick={() => {}}
+          />
+        </SettingsGroup>
+
+        {/* Group 4: Destructive */}
+        <SettingsGroup>
+          <SettingsRow
+            title="Quit Nexpot"
+            destructive
+            right={<ChevronRight size={13} strokeWidth={2} color="rgba(248,113,113,0.35)" />}
+            onClick={() => {}}
+          />
+        </SettingsGroup>
+
       </div>
     </div>
   );
