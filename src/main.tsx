@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import PrivacyPolicy from './PrivacyPolicy.tsx';
 import TermsConditions from './TermsConditions.tsx';
+import PanelPreview from './PanelPreview.tsx';
 import './index.css';
 
 const path = window.location.pathname;
@@ -10,6 +11,7 @@ const path = window.location.pathname;
 let Page = App;
 if (path === '/privacy') Page = PrivacyPolicy;
 else if (path === '/terms') Page = TermsConditions;
+else if (path === '/panel-preview') Page = PanelPreview;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
